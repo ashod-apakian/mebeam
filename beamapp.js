@@ -1,4 +1,4 @@
-
+/* MeBeam, by Ashod Apakian */
 
 
  function mbMsgSendHello               ()
@@ -174,8 +174,8 @@
   case 320:
   if(call.offer_desc==null||call.offer_desc==-1) { break; }
   call.pc.setLocalDescription(call.offer_desc);
-   call.offer_desc.sdp=sdpCodecOrderSet(call.offer_desc.sdp,"video");
-   call.offer_desc.sdp=sdpBitRatesSet(call.offer_desc.sdp,128,12);
+   //call.offer_desc.sdp=sdpCodecOrderSet(call.offer_desc.sdp,"video");
+   call.offer_desc.sdp=sdpBitRatesSet(call.offer_desc.sdp,256,64);
   call.offer_attempt=0;
   call.offer_ms=msRunning();
   call.answer_timeout=500;
@@ -217,8 +217,8 @@
   case 700:
   if(call.answer_desc==null||call.answer_desc==-1) { break; }
   call.pc.setLocalDescription(call.answer_desc);
-   call.answer_desc.sdp=sdpCodecOrderSet(call.answer_desc.sdp,"video");
-   call.answer_desc.sdp=sdpBitRatesSet(call.answer_desc.sdp,128,12);
+   //call.answer_desc.sdp=sdpCodecOrderSet(call.answer_desc.sdp,"video");
+   call.answer_desc.sdp=sdpBitRatesSet(call.answer_desc.sdp,256,64);
   obj={"cmd":"myIceAnswer","uuid":call.uuid,"data":call.answer_desc};
   wockCallWrite(mb.wock_idx,JSON.stringify(obj));
   mbLog("sent my ice answer");
@@ -276,7 +276,8 @@
 
  function updateView                   ()
  {
- var disp,land,x,y,w,h,sx,wi,wind;
+ var disp,land,x,y,w,h,sx,wi,wind,dom;
+ var sdw,sdh;
 
  mobileZoomOut(1,200,200,"no");
  disp=displayGet();
@@ -287,6 +288,7 @@
  w=disp.win_wid;
  h=disp.win_hit;
  h=parseInt(h)-30;
+ sdh=parseInt(h);
  y=parseInt(y)+7;
  if(land==true)
   {
@@ -295,20 +297,17 @@
   h/=2;
   w=parseInt(w)-7;
   if(view.uvars.side_state==true) { x=parseInt(x)+240; }
-  //if(side_state==1) { x=parseInt(x)+parseInt(w); y=parseInt(y)+0; h=parseInt(h)-0; }
+  sdw=parseInt(x);
   }
  else
   {
   if(view.uvars.side_state==true) { w=parseInt(w)-240; }
-  //if(side_state==1) { w=parseInt(w)-240; }
   w/=2;
   h/=3;
   h=parseInt(h)-7;
   if(view.uvars.side_state==true) { x=parseInt(x)+240; }
-  //if(side_state==1) {  x=parseInt(x)+parseInt(w); y=parseInt(y)+0; h=parseInt(h)-0;   }
+  sdw=parseInt(x);
   }
-
- //x=parseInt(x)+240;
 
  w=numFixed(w,0);
  h=numFixed(h,0);
@@ -322,6 +321,25 @@
   if(land==true&&((j%3)==2)) { x=sx; y+=parseInt(h); }   else
   if(land==false&&((j%2)==1)) { x=sx; y+=parseInt(h); }
   }
+
+ if(view.uvars.side_state==true)
+  {
+  dom=guiDomByIdGet("sidediv");
+  guiDomAreaSet(dom,"ltwh","0px","0px",sdw+"px",sdh+"px");
+  dom.style.borderRight="1px solid red";
+  dom.style.opacity=0.4;
+  guiDomByIdGet("sidebutton").style.left=(sdw+10)+"px";
+  }
+ else
+  {
+  dom=guiDomByIdGet("sidediv");
+  guiDomAreaSet(dom,"ltwh","0px","0px","0px","0px");
+  guiDomByIdGet("sidebutton").style.left="5px";
+  }
+  guiDomByIdGet("sidebutton").style.width="25px";
+
+
+
  }
 
 
@@ -339,6 +357,18 @@
   };
  window.addEventListener('resize',afterOrientationChange);
  });
+
+ window.addEventListener('resize',function()
+ {
+ var afterResizeChange=function()
+  {
+  if(main.stage>0)  {   updateView();   }
+  window.removeEventListener('resize',afterResizeChange);
+  };
+ window.addEventListener('resize',afterResizeChange);
+ });
+
+
 
 
 
@@ -362,7 +392,7 @@
 
  function mainThread                   ()
  {
- var bi,go,obj,msg,j,k,dom,wi,wind,dind,disp,land;
+ var bi,go,obj,msg,j,k,dom,wi,wind,dind,disp,land,room;
 
 
  switch(main.stage)
@@ -370,6 +400,9 @@
   case 0:
   mobileZoomOut(1,200,200,"no");
   mbLog("version="+main.version);
+  room=window.location.href.substring(19);
+  if(room=="") { window.location="https://mebeam.com/lobby"; }
+  mbLog(room);
   bi=browserInfo();
   for(var i=0;i<bi.length;i++) { mbLog(bi[i]); }
   view.uvars.side_state=false;
@@ -386,16 +419,30 @@
    }
   dom=guiDomElementCreate("div","sidediv",null,9999);
   guiDomAreaSet(dom,"ltwh","0px","0px","0px","0px");
-  guiDomColorSet(dom,"#a0a929","#002020");
-  dom.style.border="1px solid red";
-  dom.style.opacity=0.4;
+  guiDomColorSet(dom,"#f02029","#002020");
+  dom.style.borderRight="1px solid red";
+  dom.style.overflow="hidden";
+  //dom.style.opacity=0.1;
+
+  dom=guiDomElementCreate("div","sidediv0","sidediv",99199);
+  guiDomAreaSet(dom,"ltwh","0px","0px","100%","30px");
+  guiDomColorSet(dom,"#ffffff","#000020");
+  dom.style.borderRight="1px solid red";
+  dom.style.opacity=1.0;
+  dom.style.paddingTop="8px";
+  guiDomFontSet(dom,"arial","18px",600);
+  dom.innerHTML="<center>MeBeam v"+main.version+"</center>";
+
 
   dom=guiDomElementCreate("div","sidebutton",null,9999);
   guiDomAreaSet(dom,"ltwh","5px","5px","64px","64px");
-  guiDomColorSet(dom,"#a0a929","#002020");
-  dom.style.border="1px solid red";
-  dom.style.opacity=0.4;
+  guiDomColorSet(dom,"none","#002020");
+  dom.style.border="none";
+  dom.style.opacity=0.6;
   dom.onclick=function(event){ onDomClick(event);};
+  dom.innerHTML="<img id=\"sidelogo\" width=\"100%\" src=\"favicon.png\">";
+  guiDomByIdGet("sidelogo").style.pointerEvents="none";
+
   updateView();
   mainStageSet(100);
   break;
@@ -403,7 +450,8 @@
 
 
   case 100:
-  mbInit("/lobby",view.wind_slots-1);
+  room=window.location.href.substring(19);
+  mbInit("/"+room,view.wind_slots-1);
   devoGather();
   mainStageSet(150);
   break;
@@ -443,10 +491,9 @@
    {
    dind=viewWindGet(j,0);
    dind.loc_stream=wind.avc_stream[0].clone();
-   //dind.dom.srcObject=dind.loc_stream;
    }
   mbMsgSendHello();
-  mainStageSet(3001);
+  mainStageSet(300);
   break;
 
 
@@ -480,6 +527,8 @@
   mbProcessCalls();
   break;
   }
+
+ //if(main.cycle==900)  {  inviteOthers();  }
 // if((main.cycle%4)==0) { updateView(); }
  }
 

@@ -1,5 +1,4 @@
-
-/* written by Ashod Apakian */
+/* MeBeam, by Ashod Apakian */
 
  const IS_UNDEFINED=0;
  const IS_FAILURE=-1;
@@ -2028,3 +2027,107 @@
  mbLog("remote stream removed");
  }
 
+
+
+
+/*-----------------------------------------------------------------------*/
+
+
+ function inviteOthers                 ()
+ {
+ var textArea;
+ var url,ua=navigator.userAgent.toLowerCase();
+ var link="https://mebeam.com/"+mb.room.substring(1);
+ var text="MeBeam Video Invite:\n";
+
+ if(navigator.share)
+  {
+  navigator.share({title:'',text:text,url:link}).then(()=>
+   {
+   ///guiDomByIdGet("linkcopy").innerHTML="<span style='color:#fff;'>Shared</span>";
+   ///button_changed=true;
+   ///button_ms=msRunning();
+   mbLog('Successful share');
+   })
+   .catch((error)=>{mbLog('Error sharing',error); });
+  }
+ else
+  {
+  if(mobileDetect())
+   {
+   if(ua.indexOf("iphone")>-1||ua.indexOf("ipad")>-1)    {    url="sms:;body="+encodeURIComponent(text)+encodeURIComponent("\n")+encodeURIComponent(link);    }
+   else                                                  {    url="sms:?body="+encodeURIComponent(text)+encodeURIComponent("\n")+encodeURIComponent(link);    }
+   ///guiDomByIdGet("linkcopy").innerHTML="<span style='color:#fff;'>Shared</span>";
+   ///button_changed=true;
+   ///button_ms=msRunning();
+   mbLog("aa");
+   ww=window.open(url,'_blank');
+   return;
+   }
+  ///guiDomByIdGet("linkcopy").innerHTML="<span style='color:#fff;'>Link copied</span>";
+  text="https://mebeam.com/"+my_room.substring(1);
+  textArea=document.createElement("textarea");
+  textArea.style.position='fixed';
+  textArea.style.top=0;
+  textArea.style.left=0;
+  textArea.style.width='2em';
+  textArea.style.height='2em';
+  textArea.style.padding=0;
+  textArea.style.border='none';
+  textArea.style.outline='none';
+  textArea.style.boxShadow='none';
+  textArea.style.background='transparent';
+  textArea.value=text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try
+   {
+   var successful=document.execCommand('copy');
+   var msg=successful?'successful':'unsuccessful';
+   mbLog('Copying text command was ' + msg);
+   }
+  catch (err) {  mbLog('Oops, unable to copy');  }
+  document.body.removeChild(textArea);
+  button_changed=true;
+  button_ms=msRunning();
+  copyTextToClipboard();
+  }
+ }
+
+
+
+
+ function copyTextToClipboard          ()
+ {
+ var text;
+
+ text="https://mebeam.com/"+my_room.substring(1);
+ //eid=eleById("linkcopy");
+ //if(eid!=null)  {  eid.innerHTML="<span style='color:#fff;'>Copied</span>";  }
+ var textArea=document.createElement("textarea");
+ textArea.style.position='fixed';
+ textArea.style.top=0;
+ textArea.style.left=0;
+ textArea.style.width='2em';
+ textArea.style.height='2em';
+ textArea.style.padding=0;
+ textArea.style.border='none';
+ textArea.style.outline='none';
+ textArea.style.boxShadow='none';
+ textArea.style.background='transparent';
+ textArea.value=text;
+ document.body.appendChild(textArea);
+ textArea.focus();
+ textArea.select();
+ try
+  {
+  var successful=document.execCommand('copy');
+  var msg=successful?'successful':'unsuccessful';
+  mbLog('Copying text command was ' + msg);
+  }
+ catch (err) {  mbLog('Oops, unable to copy');  }
+ document.body.removeChild(textArea);
+ button_changed=true;
+ button_ms=msRunning();
+ }

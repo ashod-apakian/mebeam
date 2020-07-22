@@ -23,6 +23,7 @@ a:active,      a:focus      {  outline: 0;  border: none;  -moz-outline-style: n
 button:active, button:focus {  outline: 0;  border: none;  -moz-outline-style: none;  box-shadow: none;  text-decoration:none;}
 span:active,   span:focus   {  outline: 0;  border: none;  -moz-outline-style: none;  box-shadow: none;  text-decoration:none;}
 div:active,    div:focus    {  outline: 0;  border: none;  -moz-outline-style: none;  box-shadow: none;  text-decoration:none;}
+img:active,    img:focus    {  outline: 0;  border: none;  -moz-outline-style: none;  box-shadow: none;  text-decoration:none;}
 </style>
 <?php
 echo "<script type='text/javascript' src='/beamer.js?v=".$vvv."'></script>\n";
