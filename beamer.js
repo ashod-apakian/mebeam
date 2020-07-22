@@ -1,4 +1,5 @@
 
+/* written by Ashod Apakian */
 
  const IS_UNDEFINED=0;
  const IS_FAILURE=-1;
