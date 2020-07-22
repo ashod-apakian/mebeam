@@ -174,8 +174,9 @@
   case 320:
   if(call.offer_desc==null||call.offer_desc==-1) { break; }
   call.pc.setLocalDescription(call.offer_desc);
-   //call.offer_desc.sdp=sdpCodecOrderSet(call.offer_desc.sdp,"video");
-   call.offer_desc.sdp=sdpBitRatesSet(call.offer_desc.sdp,256,64);
+  //sdpLog(call.offer_desc);
+   call.offer_desc.sdp=sdpCodecOrderSet(call.offer_desc.sdp,"video");
+   call.offer_desc.sdp=sdpBitRatesSet(call.offer_desc.sdp,1256,64);
   call.offer_attempt=0;
   call.offer_ms=msRunning();
   call.answer_timeout=500;
@@ -217,7 +218,8 @@
   case 700:
   if(call.answer_desc==null||call.answer_desc==-1) { break; }
   call.pc.setLocalDescription(call.answer_desc);
-   //call.answer_desc.sdp=sdpCodecOrderSet(call.answer_desc.sdp,"video");
+  //sdpLog(call.answer_desc);
+   call.answer_desc.sdp=sdpCodecOrderSet(call.answer_desc.sdp,"video");
    call.answer_desc.sdp=sdpBitRatesSet(call.answer_desc.sdp,256,64);
   obj={"cmd":"myIceAnswer","uuid":call.uuid,"data":call.answer_desc};
   wockCallWrite(mb.wock_idx,JSON.stringify(obj));
@@ -385,14 +387,52 @@
  }
 
 
+/*
+062948 20768572
+ var pc1=0;
+ let lastResult;
+
+
+ window.setInterval(()=>
+ {
+ if(!pc1)    {    return;  }
+ const sender=pc1.getSenders()[0];
+ if(!sender) {    return;  }
+ const recver=pc1.getReceivers()[0];
+ if(!recver) {    return;  }
+ sender.getStats().then(res =>
+  {
+  res.forEach(report =>
+   {
+   let bytes,headerBytes,packets;
+   if(report.type==='outbound-rtp')
+    {
+    if(report.isRemote) {      return;        }
+    const now = report.timestamp;
+    bytes = report.bytesSent;
+    headerBytes = report.headerBytesSent;
+    packets = report.packetsSent;
+    if (lastResult && lastResult.has(report.id))
+     {
+     const bitrate = 8 * (bytes - lastResult.get(report.id).bytesSent) /   (now - lastResult.get(report.id).timestamp);
+     const headerrate = 8 * (headerBytes - lastResult.get(report.id).headerBytesSent) /    (now - lastResult.get(report.id).timestamp);
+     mbLog(bitrate+"  "+headerrate);
+        }
+      }
+    });
+    lastResult = res;
+  });
+ },1000);
+
+*/
 
 
 
-
+var all_good;
 
  function mainThread                   ()
  {
- var bi,go,obj,msg,j,k,dom,wi,wind,dind,disp,land,room;
+ var bi,go,obj,msg,j,k,dom,wi,wind,dind,disp,land,room,coll;
 
 
  switch(main.stage)
@@ -411,7 +451,9 @@
    wi=viewWindCreate();
    wind=viewWindGet(wi,0);
    wind.dom=guiDomElementCreate("video","viddy"+j,null,2000);
-   wind.dom.style.objectFit="fill";
+  // wind.dom.style.objectFit="scale-down";
+   //wind.dom.style.objectFit="contain";
+   wind.dom.style.objectFit="cover";
    guiDomAreaSet(wind.dom,"ltwh","0px","0px","10px","10px");
    guiDomColorSet(wind.dom,"#222267","#002020");
    wind.dom.style.border="1px solid #111001";
@@ -421,17 +463,20 @@
   guiDomAreaSet(dom,"ltwh","0px","0px","0px","0px");
   guiDomColorSet(dom,"#f02029","#002020");
   dom.style.borderRight="1px solid red";
-  dom.style.overflow="hidden";
+  dom.style.overflowY="auto";
   //dom.style.opacity=0.1;
 
-  dom=guiDomElementCreate("div","sidediv0","sidediv",99199);
-  guiDomAreaSet(dom,"ltwh","0px","0px","100%","30px");
+  for(k=0;k<40;k++)
+  {
+  dom=guiDomElementCreate("div","sidediv"+k,"sidediv",99199);
+  guiDomAreaSet(dom,"ltwh","0px",(k*35)+"px","100%","29px");
   guiDomColorSet(dom,"#ffffff","#000020");
-  dom.style.borderRight="1px solid red";
+  dom.style.borderBottom="1px solid blue";
   dom.style.opacity=1.0;
-  dom.style.paddingTop="8px";
+  dom.style.paddingTop="5px";
   guiDomFontSet(dom,"arial","18px",600);
   dom.innerHTML="<center>MeBeam v"+main.version+"</center>";
+  }
 
 
   dom=guiDomElementCreate("div","sidebutton",null,9999);
@@ -442,8 +487,31 @@
   dom.onclick=function(event){ onDomClick(event);};
   dom.innerHTML="<img id=\"sidelogo\" width=\"100%\" src=\"favicon.png\">";
   guiDomByIdGet("sidelogo").style.pointerEvents="none";
-
   updateView();
+  mainStageSet(50);
+  break;
+
+
+  case 50:
+  navigator.mediaDevices.getUserMedia({  audio: true,  video: true,})
+  .then((stream)=>
+   {
+   stream.getTracks().forEach(function(track) {  track.stop();  });
+   all_good=1;
+   })
+  .catch(function(error)
+   {
+   alert('getUserMedia() error: '+ error);
+   all_good=0;
+   });
+  mainStageSet(77);
+  break;
+
+
+  case 77:
+  if(all_good==undefined) { break; }
+  if(all_good==0)         { break; }
+  alert("All good");
   mainStageSet(100);
   break;
 
@@ -470,7 +538,7 @@
   case 200:
   wind=viewWindGet(0,0);
   wind.avc[0]=devoConstraints(0,0,-1);
-  wind.avc[0]=devoConstraintsVideoSet(wind.avc[0],320,320,320,180,180,180);
+  wind.avc[0]=devoConstraintsVideoSet(wind.avc[0],640,640,640,480,480,480);
   wind.avc_stream[0]=0;
   devoUserMediaGet(wind.avc[0],0,0,function(pa,pb,code,stream)
    {
@@ -487,14 +555,28 @@
   if(wind.avc_stream[0]<=0) { break; }
   wind.loc_stream=wind.avc_stream[0];
   wind.dom.srcObject=wind.avc_stream[0];
+  mainStageSet(260);
+  break;
+
+
+
+  case 260:
+  wind=viewWindGet(0,0);
   for(j=1;j<view.wind_slots;j++)
    {
    dind=viewWindGet(j,0);
-   dind.loc_stream=wind.avc_stream[0].clone();
+   if(dind.loc_stream==0)
+    {
+    dind.loc_stream=wind.avc_stream[0].clone();
+    break;
+    }
    }
+  if(j!=view.wind_slots) { break; }
   mbMsgSendHello();
   mainStageSet(300);
   break;
+
+
 
 
   case 300:
@@ -524,13 +606,24 @@
 
   case 500:
   mainStageSet(400);
+  /*
+  if(pc1==0)
+   {
+   coll=mb.call_array[0];
+   if(coll.is_connected==true)    {    pc1=coll.pc;    }
+   }
+   */
+
   mbProcessCalls();
   break;
   }
 
+
+ if((main.cycle%100)==99) { mobileZoomOut(1,200,200,"no"); }
  //if(main.cycle==900)  {  inviteOthers();  }
 // if((main.cycle%4)==0) { updateView(); }
  }
+
 
 
 
