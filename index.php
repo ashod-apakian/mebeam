@@ -37,7 +37,7 @@ echoScript("/lib/lib_que.js?".$vvv);
 echoScript("/lib/lib_wock.js?".$vvv);
 echoScript("/lib/lib_devices.js?".$vvv);
 echoScript("/lib/lib_main.js?".$vvv);
-echoScript("/app_16.js?".$vvv);
+echoScript("/app.js?".$vvv);
 echoCode("window.onload=function(){ mainEntry(); };");
 ?>
 </head>
