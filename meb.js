@@ -1,6 +1,6 @@
 
 
- const max_windows=16;
+ const max_windows=8;
 
  var handle_base=1000000;
  var handef_array=[];
@@ -13,7 +13,7 @@
 
 
 /**************************************************************************/
-//http://patorjk.com/software/taag/#p=display&c=c%2B%2B&f=Electronic&t=
+/**************************************************************************/
 /**************************************************************************/
 
 
@@ -51,7 +51,7 @@
   }
  else
   {
-  if(ify==true)   {   hud.Log(num.Pad(num.Fixed(timer.TikNow(true),2),10,'0')+": "+JSON.stringify(msg,0,2))   }
+  if(ify==true)   {   hud.Log(num.Pad(num.Fixed(timer.TikNow(true),2),10,'0')+": "+JSON.stringify(msg,0,0))   }
   else            {   hud.Log(num.Pad(num.Fixed(timer.TikNow(true),2),10,'0')+": "+msg)   }
   }
  }
@@ -1442,7 +1442,6 @@
  state.is_detecting=false;
  state.is_detected=false;
  state.is_updated=false;
- state.worker_added=false;
  state.channel_handef=new HandleDefine("channel",max_windows,false);
  is_init=true;
  }
@@ -1684,22 +1683,17 @@
  try
   {
   obj.u.pc=new RTCPeerConnection(obj.u.config,obj.u.constraints);
-  obj.u.pc.onconnectionstatechange=function(e)    { On(obj.self_handle,"onconnectionstatechange",e);   };
-  obj.u.pc.onicecandidate=function(e)             { On(obj.self_handle,"onicecandidate",e);   };
-  obj.u.pc.oniceconnectionstatechange=function(e) { On(obj.self_handle,"oniceconnectionstatechange",e);   };
-  obj.u.pc.onicegatheringstatechange=function(e)  { On(obj.self_handle,"onicegatheringstatechange",e);   };
-  obj.u.pc.onsignalingstatechange=function(e)     { On(obj.self_handle,"onsignalingstatechange",e);   };
-  obj.u.pc.onnegotiationneeded=function(e)        { On(obj.self_handle,"onnegotiationneeded",e);   };
-  obj.u.pc.ontrack=function(e)                    { On(obj.self_handle,"ontrack",e);   };
-  obj.u.pc.onaddstream=function(e)                { On(obj.self_handle,"onaddstream",e);   };
-  obj.u.pc.onremovestream=function(e)             { On(obj.self_handle,"onremovestream",e);   };
+  obj.u.pc.onconnectionstatechange=function(e)    { ChannelOn(obj.self_handle,"onconnectionstatechange",e);   };
+  obj.u.pc.onicecandidate=function(e)             { ChannelOn(obj.self_handle,"onicecandidate",e);   };
+  obj.u.pc.oniceconnectionstatechange=function(e) { ChannelOn(obj.self_handle,"oniceconnectionstatechange",e);   };
+  obj.u.pc.onicegatheringstatechange=function(e)  { ChannelOn(obj.self_handle,"onicegatheringstatechange",e);   };
+  obj.u.pc.onsignalingstatechange=function(e)     { ChannelOn(obj.self_handle,"onsignalingstatechange",e);   };
+  obj.u.pc.onnegotiationneeded=function(e)        { ChannelOn(obj.self_handle,"onnegotiationneeded",e);   };
+  obj.u.pc.ontrack=function(e)                    { ChannelOn(obj.self_handle,"ontrack",e);   };
+  obj.u.pc.onaddstream=function(e)                { ChannelOn(obj.self_handle,"onaddstream",e);   };
+  obj.u.pc.onremovestream=function(e)             { ChannelOn(obj.self_handle,"onremovestream",e);   };
   }
  catch(e)  {  alert('RTCPeerConnection object. exception: '+e.message+' loc_stream='+call.loc_stream);  return;   }
- if(state.worker_added==false)
-  {
-  state.worker_added=true;
-  main.WorkerAdd(devices.ChannelIterator,1);
-  }
  h=obj.self_handle;
  return h;
  }
@@ -1807,7 +1801,7 @@
 
 
  function ChannelConnect (handle) { var obj;
- if((obj=devices.Get(handle))==null) { return false; }
+ if((obj=devices.ChannelGet(handle))==null) { return false; }
  if(obj.u.combined_stream==undefined||obj.u.combined_stream==null) { return false; }
  if(obj.u.is_connect!=false) { return false; }
  obj.u.is_connect=true;
@@ -1823,7 +1817,7 @@
 
 
  function ChannelRoleSet (handle,role) { var obj;
- if((obj=devices.Get(handle))==null) { return false; }
+ if((obj=devices.ChannelGet(handle))==null) { return false; }
  if(obj.u.role!=null) { return false; }
  obj.u.role=role;
  return true;
@@ -1834,7 +1828,7 @@
 
 
  function ChannelCreateOffer (handle) { var obj;
- if((obj=devices.Get(handle))==null) { return false; }
+ if((obj=devices.ChannelGet(handle))==null) { return false; }
  if(ObjectIsEmpty(obj.u.pc)==false) { oof(""); }
  if(obj.u.combined_stream==undefined||obj.u.combined_stream==null) { return false; }
  if(obj.u.loc_offer_desc!=null) { return false; }
@@ -1856,7 +1850,7 @@
 
 
  function ChannelCreateAnswer (handle) { var obj;
- if((obj=devices.Get(handle))==null) { return false; }
+ if((obj=devices.ChannelGet(handle))==null) { return false; }
  if(ObjectIsEmpty(obj.u.pc)==false) { oof(""); }
  if(obj.u.combined_stream==undefined||obj.u.combined_stream==null) { return false; }
  if(obj.u.loc_answer_desc!=null) { return false; }
@@ -1938,61 +1932,6 @@
 
 
 
- function ChannelIterator () {  var obj; //var go,obj,bund; var conf;
- if((obj=ChannelNext())==null) { return false; }
- /**
- bund=gui.bundle_array[obj.u.bundle_index];
- switch(bund.stage)
-  {
-  case 100:
-  conf=devices.VideoConfig(2);
-  if(devices.Attach(obj.self_handle,conf)!=true) { oof();  }
-  conf=devices.AudioConfig(0);
-  if(devices.Attach(obj.self_handle,conf)!=true) { oof(); return false; }
-  conf=devices.CanvasConfig(bund.cani_handle);
-  if(devices.Attach(obj.self_handle,conf)!=true) { oof(); return false; }
-  bund.stage=140;
-  break;
-
-  case 140:
-  if(devices.Combine(obj.self_handle)==false) { break; }
-  bund.stage=200;
-  break;
-
-  case 200:
-  if(devices.Connect(obj.self_handle)==false) { oof(); }
-  bund.stage=250;
-  break;
-
-  case 250:
-  if(obj.u.negotiation_needed!=true) { break; }
-  gui.Get(bund.vidi_handle).u.dom.srcObject=obj.u.combined_stream;
-  bund.stage="device_waiting_role";
-  break;
-
-  case "device_waiting_role":
-  if(obj.u.role==null) { break; }
-  if(obj.u.role=="maker")
-   {
-   devices.CreateOffer(obj.self_handle);
-
-   }
-  else
-   {
-
-   }
-  //Logger("my role = "+obj.u.role);
-  bund.stage=350;
-  break;
-
-  case 350:
-  break;
-  }
-  */
- }
-
-
-
 
 
 
@@ -2007,6 +1946,7 @@
  CanvasConfig:CanvasConfig,
  ChannelCreate:ChannelCreate,
  ChannelDestroy:ChannelDestroy,
+ ChannelNext:ChannelNext,
  ChannelGet:ChannelGet,
  ChannelByIndexGet:ChannelByIndexGet,
  ChannelAttach:ChannelAttach,
@@ -2015,8 +1955,6 @@
  ChannelRoleSet:ChannelRoleSet,
  ChannelCreateOffer:ChannelCreateOffer,
  ChannelCreateAnswer:ChannelCreateAnswer,
- ChannelIterator:ChannelIterator
-
  }
 
 
@@ -2247,6 +2185,131 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+//   ▄    ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄  
+//  ▐░▌  ▐░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░▌ 
+//  ▐░▌ ▐░▌ ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌       ▐░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌
+//  ▐░▌▐░▌  ▐░▌          ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌
+//  ▐░▌░▌   ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌
+//  ▐░░▌    ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░▌ ▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌
+//  ▐░▌░▌   ▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌▐░▌       ▐░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀█░█▀▀ ▐░▌       ▐░▌
+//  ▐░▌▐░▌  ▐░▌               ▐░▌     ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌     ▐░▌  ▐░▌       ▐░▌
+//  ▐░▌ ▐░▌ ▐░█▄▄▄▄▄▄▄▄▄      ▐░▌     ▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░▌      ▐░▌ ▐░█▄▄▄▄▄▄▄█░▌
+//  ▐░▌  ▐░▌▐░░░░░░░░░░░▌     ▐░▌     ▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░░░░░░░░░░▌ 
+//   ▀    ▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀       ▀▀▀▀▀▀▀▀▀▀   ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀  
+
+
+
+
+
+
+ var keyboard=(function() {
+ var is_init=false;
+ var hit_map=[];
+
+ function Init () { var i;
+ if(is_init==true) { return; }
+ for(i=0;i<256;i++) { hit_map[i]=0; }
+ is_init=true;
+ }
+
+
+ Init();
+
+
+
+
+
+
+ 
+ function Start () {  
+ document.addEventListener('keyup',function(event) { 
+ OnEvent("keyup",event);
+ });
+ document.addEventListener('keydown',function(event) { 
+ OnEvent("keydown",event);
+ });
+ document.addEventListener('keypress',function(event) { 
+ OnEvent("keypress",event);
+ });
+ }
+
+
+
+
+ function Stop () { 
+ }
+
+
+
+
+
+ function OnEvent (name,ev) { var key;
+ if(ev.defaultPrevented) { return;  }
+ key=ev.keyCode||ev.key;
+ if(isNaN(key))  {  oof();  }
+ while(1)
+  {
+  if(key==8)            { break; }  // backspace
+  if(key==9)            { break; }  // tab
+  if(key==13)           { break; }  // enter
+  if(key==16)           { break; }  // shift
+  if(key==17)           { break; }  // ctrl
+  if(key==18)           { break; }  // alt
+  if(key==19)           { break; }  // pause
+  if(key==27)           { break; }  // esc
+  if(key==32)           { break; }  // space
+  if(key==33)           { break; }  // pgup
+  if(key==34)           { break; }  // pgdown
+  if(key==35)           { break; }  // end
+  if(key==36)           { break; }  // home
+  if(key==44)           { break; }  // printscr
+  if(key==45)           { break; }  // insert
+  if(key==46)           { break; }  // delete
+  if(key>=48&&key<=57)  { break; }  // digits
+  if(key>=65&&key<=90)  { break; }  // upper case
+  if(key>=97&&key<=122) { break; }  // lower case
+  Logger(key+" "+name) 
+  break;
+  }
+ if(name=="keydown")
+  {
+  hit_map[key]=1;
+  }
+ else
+ if(name=="keyup")
+  {
+  hit_map[key]=0;
+  }
+ else
+ if(name=="keypress")
+  {
+
+  }
+ }
+
+
+
+
+ return{
+ is_init:is_init,
+ hit_map:hit_map,
+ Start:Start,
+ Stop:Stop,
+ }
+
+
+})();
 
 
 
