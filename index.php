@@ -1,5 +1,5 @@
 <?php
-$vvv=intval(intval(microtime(true))); if(0) { $vvv=212; }  if(1) { $vvv=microtime(true); }
+if(0) { $vvv=212; }  else { $vvv=microtime(true); }
 $req=$_SERVER['REQUEST_URI'];
 if(empty($_SERVER['HTTPS'])||$_SERVER['HTTPS']==="off") {
  header('HTTP/1.1 301 Moved Permanently');
@@ -12,7 +12,7 @@ function echoCode   ($cd) { echo "<script type='text/javascript'>".$cd."</script
 <!doctype html>
 <html lang="en">
 <head>
-<title>MeBeam, video conferencing</title>
+<title>MeBeam, video group call</title>
 <meta name='theme-color' content='#113355' />
 <link rel='shortcut icon' href='/favicon.ico' type='image/x-icon' />
 <style type="text/css">
@@ -27,18 +27,13 @@ div:active,    div:focus    {  outline: 0;  border: none;  -moz-outline-style: n
 img:active,    img:focus    {  outline: 0;  border: none;  -moz-outline-style: none;  box-shadow: none;  text-decoration:none;}
 </style>
 <?php
-echoScript("/lib/lib_globals.js?".$vvv);
-echoScript("/lib/lib_num.js?".$vvv);
-echoScript("/lib/lib_timer.js?".$vvv);
-echoScript("/lib/lib_env.js?".$vvv);
-echoScript("/lib/lib_gui.js?".$vvv);
-echoScript("/lib/lib_hud.js?".$vvv);
-echoScript("/lib/lib_que.js?".$vvv);
-echoScript("/lib/lib_wock.js?".$vvv);
-echoScript("/lib/lib_devices.js?".$vvv);
-echoScript("/lib/lib_main.js?".$vvv);
-echoScript("/app.js?".$vvv);
-echoCode("window.onload=function(){ mainEntry(); };");
+echoScript("/mb_base.js?".$vvv);
+echoScript("/mb_glue.js?".$vvv);
+echoScript("/mb_prog.js?".$vvv);
+//echoScript("/proggy.js?".$vvv);
+//echoScript("/beam.js?".$vvv);
+//echoScript("/demo.js?".$vvv);
+echoCode("window.onload=function(){ Main(); };");
 ?>
 </head>
 <body id="bodid" style="background: #000009; margin: 0; padding: 0; overflow: hidden;">
