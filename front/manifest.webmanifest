@@ -1,0 +1,25 @@
+{
+  "name": "MeBeam",
+  "short_name": "MeBeam",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffff99",
+  "theme_color": "#2F4F7F",
+  "orientation": "portrait",
+  "description": "You see what I'm saying!",
+  "scope": "https://mebeam.com/",
+  "icons": [{
+    "src": "http://mebeam.com/favicon.png",
+    "sizes": "32x32",
+    "type": "image/png"
+  },
+  {
+    "src": "http://mebeam.com/favicon192x192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }
+
+   ]
+
+
+}
